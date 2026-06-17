@@ -39018,9 +39018,9 @@ DTF 스티커 (부착),,,,,,600,,,,,,
     function downloadImage() {
         if(itemList.length === 0) { alert("견적표가 비어있습니다!"); return; }
         const captureArea = document.getElementById('capture-area');
-        html2canvas(captureArea, { scale: 2, backgroundColor: '#ffffff' }).then(canvas => {
+        html2canvas(captureArea, { scale: 1, backgroundColor: '#ffffff' }).then(canvas => {
             const link = document.createElement('a');
-            link.download = '상세_견적서.png';
+            link.download = '상세견적서.png';
             link.href = canvas.toDataURL('image/png');
             link.click();
         });
