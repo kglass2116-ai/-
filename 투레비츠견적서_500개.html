@@ -2,34 +2,49 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <title>단가 견적 계산기_500개단가</title>
+    <title>견적계산기</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
+        /* 기본 레이아웃 및 폰트 설정 */
         body { font-family: 'Malgun Gothic', sans-serif; padding: 20px; background-color: #f8fafc; }
-        .container { max-width: 1100px; margin: 0 auto; background: #fff; padding: 30px; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+        .container { max-width: 1200px; margin: 0 auto; background: #fff; padding: 30px; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
         h2 { text-align: center; color: #1e293b; margin-bottom: 30px; }
         
+        /* 상단 입력 폼 영역 */
         .form-group { display: flex; flex-wrap: wrap; gap: 15px; margin-bottom: 20px; padding: 20px; background: #f1f5f9; border-radius: 8px; }
         .input-box { display: flex; flex-direction: column; flex: 1; min-width: 120px; }
         .input-box label { font-size: 13px; font-weight: bold; margin-bottom: 5px; color: #475569; }
         select, input[type="number"] { padding: 10px; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 14px; outline: none; }
         select:disabled, input:disabled { background-color: #e2e8f0; color: #94a3b8; }
         
-        .btn-add { background: #2563eb; color: white; border: none; padding: 12px 20px; font-size: 16px; border-radius: 4px; cursor: pointer; width: 100%; font-weight: bold; transition: 0.2s; }
+        /* 공통 폼 버튼 스타일 */
+        button { border: none; border-radius: 4px; cursor: pointer; font-weight: bold; transition: 0.2s; }
+        .btn-add { background: #2563eb; color: white; padding: 12px 20px; font-size: 16px; width: 100%; }
         .btn-add:hover { background: #1d4ed8; }
+        .btn-download { background: #10b981; color: white; padding: 12px 25px; font-size: 16px; display: block; margin: 30px auto 0; }
+        .btn-download:hover { background: #059669; }
         
+        /* 견적서 표 기본 영역 */
         #capture-area { padding: 30px; background: white; margin-top: 30px; border: 1px solid #e2e8f0; border-radius: 8px; }
         table { width: 100%; border-collapse: collapse; margin-top: 10px; }
         th, td { border: 1px solid #e2e8f0; padding: 12px; text-align: center; font-size: 14px; color: #334155; }
-        th { background-color: #f8fafc; font-weight: bold; }
-       td input[type="number"] { width: 70px;  height: 30px; line-height: 30px;    padding: 0; text-align: center; border: 1px solid #cbd5e1; border-radius: 4px; box-sizing: border-box; font-size: 12px;}
-        .btn-delete { background: #ef4444; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 12px; }
-        .btn-delete:hover { background: #dc2626; }
-        
+        th { background-color: #f8fafc; }
+        td input[type="number"] { width: 70px; height: 30px; padding: 0; text-align: center; font-size: 12px; }
         .total-section { text-align: right; margin-top: 25px; font-size: 22px; font-weight: bold; color: #e11d48; border-top: 2px solid #e2e8f0; padding-top: 20px; }
         
-        .btn-download { background: #10b981; color: white; border: none; padding: 12px 25px; font-size: 16px; border-radius: 4px; cursor: pointer; display: block; margin: 30px auto 0; font-weight: bold; }
-        .btn-download:hover { background: #059669; }
+        /* ★ 핵심: 표 바깥으로 버튼을 분리하기 위한 투명 칸 스타일 ★ */
+        .out-of-table { border: none !important; background: transparent !important; width: 40px; padding: 0 !important; }
+        .drag-handle { cursor: grab; font-size: 20px; color: #94a3b8; user-select: none; vertical-align: middle; }
+        .drag-handle:active { cursor: grabbing; color: #2563eb; }
+        
+        /* 삭제 버튼 10px 띄우고 스타일 조정 */
+        .btn-delete { background: #ef4444; color: white; padding: 6px 10px; font-size: 13px; font-weight: bold; margin-left: 10px; border-radius: 4px; }
+        .btn-delete:hover { background: #dc2626; }
+        
+        /* 드래그 앤 드롭 애니메이션 효과 */
+        tr.dragging { opacity: 0.4; background-color: #f1f5f9; }
+        tr.drop-above td:not(.out-of-table) { border-top: 2px solid #2563eb !important; }
+        tr.drop-below td:not(.out-of-table) { border-bottom: 2px solid #2563eb !important; }
     </style>
 </head>
 <body>
@@ -38,68 +53,51 @@
     <h2>투레비츠 견적서(500개단가)</h2>
     
     <div class="form-group">
-        <div class="input-box">
-            <label>제품</label>
-            <select id="product"></select>
-        </div>
-        <div class="input-box">
-            <label>두께</label>
-            <select id="thickness"></select>
-        </div>
-        <div class="input-box">
-            <label>코팅여부</label>
-            <select id="coating"></select>
-        </div>
-        <div class="input-box">
-            <label>양면/단면</label>
-            <select id="printSide"></select>
-        </div>
-        <div class="input-box">
-            <label>가로(cm)</label>
-            <input type="number" id="width" value="2" min="1" step="1">
-        </div>
-        <div class="input-box">
-            <label>세로(cm)</label>
-            <input type="number" id="height" value="2" min="1" step="1">
-        </div>
-        <div class="input-box">
-            <label>수량(개)</label>
-            <input type="number" id="quantity" value="1" min="1">
-        </div>
+        <div class="input-box"><label>제품선택</label><select id="product"></select></div>
+        <div class="input-box"><label>두께</label><select id="thickness"></select></div>
+        <div class="input-box"><label>코팅여부</label><select id="coating"></select></div>
+        <div class="input-box"><label>프린트(면)</label><select id="printSide"></select></div>
+        <div class="input-box"><label>가로(cm)</label><input type="number" id="width" value="2" min="1"></div>
+        <div class="input-box"><label>세로(cm)</label><input type="number" id="height" value="2" min="1"></div>
+        <div class="input-box"><label>수량(개)</label><input type="number" id="quantity" value="1" min="1"></div>
     </div>
-    <button class="btn-add" id="btnAdd" onclick="addItem()">확인</button>
+    <button class="btn-add" onclick="addItem()">견적 표에 추가하기</button>
 
     <div id="capture-area">
-        <h3 style="text-align: center; color: #; margin-top: 0; margin-bottom: 20px;">상세 견적서</h3>
+        <h3 style="text-align: center; color: #1e293b; margin: 0 0 20px 0;">상세 견적서</h3>
         <table>
             <thead>
                 <tr>
-                    <th>제품</th>
-                    <th>두께/코팅/프린트</th>
+                    <th class="out-of-table" data-html2canvas-ignore="true"></th>
+                    <th>No.</th>
+                    <th>제품명</th>
+                    <th>옵션(두께/코팅/프린트)</th>
                     <th>가로</th>
                     <th>세로</th>
                     <th>수량</th>
                     <th>합산여부</th>
-                    <th>개당 단가(원)</th>
-                    <th>총 금액(원)</th>
-                    <th>삭제</th>
+                    <th>개당단가(원)</th>
+                    <th>총금액(원)</th>
+                    <th class="out-of-table" data-html2canvas-ignore="true"></th>
                 </tr>
             </thead>
             <tbody id="table-body">
-                <tr><td colspan="9" style="color:#94a3b8;">추가된 항목이 없습니다.</td></tr>
+                <tr>
+                    <td class="out-of-table" data-html2canvas-ignore="true"></td>
+                    <td colspan="9" style="color:#94a3b8; padding: 30px;">추가된 항목이 없습니다.</td>
+                    <td class="out-of-table" data-html2canvas-ignore="true"></td>
+                </tr>
             </tbody>
         </table>
-        <div class="total-section">
-            총 견적 금액: <span id="grand-total">0</span> 원
-        </div>
+        <div class="total-section">총금액:<span id="grand-total">0</span>원</div>
     </div>
 
-    <button class="btn-download" onclick="downloadImage()">견적서 이미지로 다운로드</button>
+    <button class="btn-download" onclick="downloadImage()">견적서다운로드</button>
 </div>
 
 <script>
     // =========================================================================
-    // ⬇️ 아래 백틱( ` ) 기호 사이에 가지고 계신 단가.csv 파일의 내용을 붙여넣으세요!
+    // ⬇️ 가지고 계신 단가.csv 파일의 내용을 따옴표 안에 붙여넣으세요!
     // =========================================================================
     const rawCSVData = `product,thickness,coating,print,width,height,1
 키링,3t,일반,단면,2,2,800
@@ -38819,7 +38817,7 @@ D고리,,,,,,300
 머들러,,,,,,400
 슈즈참,,,,,,200
 우산마커,,,,,,400
-미니응원봉키링,,,,,,3000
+미니 응원봉 키링,,,,,,3000
 체인,,,,,,300
 DTF 스티커 (미부착),,,,,,500
 DTF 스티커 (부착),,,,,,600
@@ -38828,28 +38826,20 @@ DTF 스티커 (부착),,,,,,600
 배경투명화,,,,,,3000
 개별배송,,,,,,3500
 개별배송(산간지역),,,,,,6500
-
-
 `;
     // =========================================================================
-    // ⬆️ 붙여넣는 곳 끝
-    // =========================================================================
 
-    let csvData = [];
-    let itemList = [];
-    let idCounter = 0;
+    let csvData = [], itemList = [], idCounter = 0, draggedItemIdx = null;
 
-    window.onload = function() {
-        const lines = rawCSVData.split(/\r?\n/);
-        const headers = lines[0].split(',').map(h => h.trim());
+    window.onload = () => {
+        const lines = rawCSVData.split(/\r?\n/).filter(line => line.trim());
+        if(lines.length === 0) return;
         
+        const headers = lines[0].split(',').map(h => h.trim());
         for (let i = 1; i < lines.length; i++) {
-            if (!lines[i].trim()) continue;
             const values = lines[i].split(',');
             let row = {};
-            headers.forEach((h, index) => {
-                row[h] = values[index] !== undefined ? values[index].trim() : '';
-            });
+            headers.forEach((h, idx) => row[h] = values[idx] ? values[idx].trim() : '');
             csvData.push(row);
         }
         initProductDropdown();
@@ -38859,68 +38849,57 @@ DTF 스티커 (부착),,,,,,600
         const products = [...new Set(csvData.map(r => r.product).filter(p => p))];
         const prodSelect = document.getElementById('product');
         prodSelect.innerHTML = products.map(p => `<option value="${p}">${p}</option>`).join('');
-        
         prodSelect.addEventListener('change', updateOptions);
         updateOptions();
     }
 
     function updateOptions() {
         const selectedProd = document.getElementById('product').value;
-        const prodRows = csvData.filter(r => r.product === selectedProd);
-        
-        const getUnique = (key) => [...new Set(prodRows.map(r => r[key]).filter(v => v))];
+        const rows = csvData.filter(r => r.product === selectedProd);
+        const getUnique = (key) => [...new Set(rows.map(r => r[key]).filter(v => v))];
         
         const updateSelect = (id, values) => {
-            const select = document.getElementById(id);
-            if (values.length > 0) {
-                select.disabled = false;
-                select.innerHTML = values.map(v => `<option value="${v}">${v}</option>`).join('');
-            } else {
-                select.disabled = true;
-                select.innerHTML = `<option value="">해당없음</option>`;
-            }
+            const el = document.getElementById(id);
+            el.disabled = values.length === 0;
+            el.innerHTML = values.length > 0 ? values.map(v => `<option value="${v}">${v}</option>`).join('') : `<option value="">해당없음</option>`;
         };
 
         updateSelect('thickness', getUnique('thickness'));
         updateSelect('coating', getUnique('coating'));
         updateSelect('printSide', getUnique('print'));
         
-        const hasSize = prodRows.some(r => r.width && r.height);
-        const widthInput = document.getElementById('width');
-        const heightInput = document.getElementById('height');
-        
-        if (hasSize) {
-            widthInput.disabled = false;
-            heightInput.disabled = false;
-        } else {
-            widthInput.disabled = true;
-            heightInput.disabled = true;
-            widthInput.value = '';
-            heightInput.value = '';
+        const hasSize = rows.some(r => r.width && r.height);
+        document.getElementById('width').disabled = !hasSize;
+        document.getElementById('height').disabled = !hasSize;
+        if(!hasSize) {
+            document.getElementById('width').value = '';
+            document.getElementById('height').value = '';
         }
     }
 
     function addItem() {
-        const product = document.getElementById('product').value;
-        const thickness = document.getElementById('thickness').disabled ? '' : document.getElementById('thickness').value;
-        const coating = document.getElementById('coating').disabled ? '' : document.getElementById('coating').value;
-        const printSide = document.getElementById('printSide').disabled ? '' : document.getElementById('printSide').value;
-        
+        const getVal = (id) => document.getElementById(id).disabled ? '' : document.getElementById(id).value;
         const hasSize = !document.getElementById('width').disabled;
-        const width = hasSize ? (parseFloat(document.getElementById('width').value) || 0) : null;
-        const height = hasSize ? (parseFloat(document.getElementById('height').value) || 0) : null;
-        const quantity = parseInt(document.getElementById('quantity').value) || 1;
-
-        const isCombinable = (printSide !== ''); 
-
-        itemList.push({ id: idCounter++, product, thickness, coating, printSide, hasSize, width, height, quantity, isCombinable });
+        
+        itemList.push({ 
+            id: idCounter++, 
+            product: getVal('product'), 
+            thickness: getVal('thickness'), 
+            coating: getVal('coating'), 
+            printSide: getVal('printSide'), 
+            hasSize, 
+            width: hasSize ? parseFloat(getVal('width')) || 0 : null, 
+            height: hasSize ? parseFloat(getVal('height')) || 0 : null, 
+            quantity: parseInt(getVal('quantity')) || 1, 
+            isCombinable: getVal('printSide') !== '' 
+        });
         updateCalculations();
     }
 
     function updateItemValue(id, field, value) {
         const item = itemList.find(i => i.id === id);
         if (item) {
-            item[field] = (field === 'quantity') ? parseInt(value) || 1 : parseFloat(value) || 0;
+            item[field] = field === 'quantity' ? parseInt(value) || 1 : parseFloat(value) || 0;
             updateCalculations();
         }
     }
@@ -38932,15 +38911,13 @@ DTF 스티커 (부착),,,,,,600
 
     function findMatchingRow(item) {
         return csvData.find(r => {
-            let match = (r.product === item.product) &&
+            let match = r.product === item.product && 
                         (r.thickness === item.thickness || (!r.thickness && !item.thickness)) &&
                         (r.coating === item.coating || (!r.coating && !item.coating)) &&
                         (r.print === item.printSide || (!r.print && !item.printSide));
-            
             if (item.hasSize) {
                 let rw = parseFloat(r.width), rh = parseFloat(r.height);
-                let iw = item.width, ih = item.height;
-                match = match && ((rw === iw && rh === ih) || (rw === ih && rh === iw));
+                match = match && ((rw === item.width && rh === item.height) || (rw === item.height && rh === item.width));
             }
             return match;
         });
@@ -38948,82 +38925,124 @@ DTF 스티커 (부착),,,,,,600
 
     function getUnitPrice(row, targetQty) {
         const cols = [500, 300, 100, 50, 30, 10, 1];
-        let targetCol = 1;
-        
-        for (let c of cols) {
-            if (targetQty >= c) { targetCol = c; break; }
-        }
-        
-        for (let c of cols) {
-            if (c > targetCol) continue;
+        let targetCol = cols.find(c => targetQty >= c) || 1;
+        for (let c of cols.filter(c => c <= targetCol)) {
             let price = parseInt(row[c]);
             if (!isNaN(price) && price > 0) return price;
         }
         return 0;
     }
 
+    // ==========================================
+    // --- 드래그 앤 드롭 동작 로직 ---
+    // ==========================================
+    function handleDragStart(e) {
+        draggedItemIdx = parseInt(this.dataset.index);
+        e.dataTransfer.effectAllowed = 'move';
+        setTimeout(() => this.classList.add('dragging'), 0);
+    }
+
+    function handleDragOver(e) {
+        e.preventDefault();
+        const rect = this.getBoundingClientRect();
+        this.classList.toggle('drop-above', e.clientY - rect.top < rect.height / 2);
+        this.classList.toggle('drop-below', e.clientY - rect.top >= rect.height / 2);
+    }
+
+    function handleDragLeave() { this.classList.remove('drop-above', 'drop-below'); }
+
+    function handleDrop(e) {
+        e.preventDefault();
+        this.classList.remove('drop-above', 'drop-below');
+        let dropIdx = parseInt(this.dataset.index);
+        
+        if(draggedItemIdx !== null && draggedItemIdx !== dropIdx) {
+            let insertIdx = (e.clientY - this.getBoundingClientRect().top >= this.getBoundingClientRect().height / 2) ? dropIdx + 1 : dropIdx;
+            const itemToMove = itemList.splice(draggedItemIdx, 1)[0];
+            if(draggedItemIdx < insertIdx) insertIdx--;
+            itemList.splice(insertIdx, 0, itemToMove);
+            updateCalculations();
+        }
+    }
+
+    function handleDragEnd() {
+        this.classList.remove('dragging');
+        document.querySelectorAll('tr').forEach(tr => tr.classList.remove('drop-above', 'drop-below'));
+        draggedItemIdx = null;
+    }
+
+    // ==========================================
+    // 표 렌더링
+    // ==========================================
     function updateCalculations() {
-        let combinableQtyTotal = itemList
-            .filter(item => item.isCombinable)
-            .reduce((sum, item) => sum + item.quantity, 0);
-
-        let grandTotal = 0;
         const tbody = document.getElementById('table-body');
-        tbody.innerHTML = ''; 
 
+        // 항목이 없을 때: 좌우 바깥 영역(투명)을 유지해서 테이블 틀이 무너지지 않게 함
         if(itemList.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="9" style="color:#94a3b8;">추가된 항목이 없습니다.</td></tr>';
+            tbody.innerHTML = `
+                <tr>
+                    <td class="out-of-table" data-html2canvas-ignore="true"></td>
+                    <td colspan="9" style="color:#94a3b8; padding: 30px;">추가된 항목이 없습니다.</td>
+                    <td class="out-of-table" data-html2canvas-ignore="true"></td>
+                </tr>
+            `; 
             document.getElementById('grand-total').innerText = '0';
             return;
         }
 
-        itemList.forEach(item => {
+        let combinableQtyTotal = itemList.filter(i => i.isCombinable).reduce((sum, i) => sum + i.quantity, 0);
+        let grandTotal = 0, productCount = 1;
+        tbody.innerHTML = ''; 
+
+        itemList.forEach((item, index) => {
             const row = findMatchingRow(item);
-            let targetQty = item.isCombinable ? combinableQtyTotal : item.quantity;
-            let finalPrice = 0;
-            let unitPrice = 0;
-            let errorMsg = '';
-
-            if (row) {
-                unitPrice = getUnitPrice(row, targetQty);
-                finalPrice = unitPrice * item.quantity;
-                grandTotal += finalPrice;
-            } else {
-                errorMsg = '<br><span style="color:#ef4444; font-size:11px;">단가표에 해당 사이즈가 없습니다.</span>';
-            }
-
-            let wInput = item.hasSize ? `<input type="number" step="1" value="${item.width}" onchange="updateItemValue(${item.id}, 'width', this.value)">` : '-';
-            let hInput = item.hasSize ? `<input type="number" step="1" value="${item.height}" onchange="updateItemValue(${item.id}, 'height', this.value)">` : '-';
-            let qtyInput = `<input type="number" value="${item.quantity}" onchange="updateItemValue(${item.id}, 'quantity', this.value)" min="1">`;
+            let unitPrice = row ? getUnitPrice(row, item.isCombinable ? combinableQtyTotal : item.quantity) : 0;
+            let finalPrice = unitPrice * item.quantity;
+            grandTotal += finalPrice;
             
-            let specStr = [];
-            if(item.thickness) specStr.push(item.thickness);
-            if(item.coating) specStr.push(item.coating);
-            if(item.printSide) specStr.push(item.printSide);
-            let specDisplay = specStr.length > 0 ? specStr.join(' / ') : '옵션없음';
+            // 옵션이 전혀 없으면 부자재로 취급하여 넘버링 생략
+            let isAccessory = item.product.includes('부자재') || (!item.thickness && !item.coating && !item.printSide);
+            let numDisplay = isAccessory ? '' : `<span style="font-weight: bold; color: #0f172a;">${productCount++}</span>`;
 
             const tr = document.createElement('tr');
+            tr.setAttribute('draggable', 'true');
+            tr.dataset.index = index;
+            tr.addEventListener('dragstart', handleDragStart);
+            tr.addEventListener('dragover', handleDragOver);
+            tr.addEventListener('dragleave', handleDragLeave);
+            tr.addEventListener('drop', handleDrop);
+            tr.addEventListener('dragend', handleDragEnd);
+
+            let specDisplay = [item.thickness, item.coating, item.printSide].filter(Boolean).join(' / ') || '옵션없음';
+            let wInput = item.hasSize ? `<input type="number" value="${item.width}" onchange="updateItemValue(${item.id}, 'width', this.value)">` : '-';
+            let hInput = item.hasSize ? `<input type="number" value="${item.height}" onchange="updateItemValue(${item.id}, 'height', this.value)">` : '-';
+
+         
             tr.innerHTML = `
+                <td class="out-of-table" data-html2canvas-ignore="true"><span class="drag-handle" title="이곳을 드래그하여 순서 이동">☰</span></td>
+                <td>${numDisplay}</td>
                 <td>${item.product}</td>
                 <td>${specDisplay}</td>
                 <td>${wInput}</td>
                 <td>${hInput}</td>
-                <td>${qtyInput}</td>
+                <td><input type="number" value="${item.quantity}" onchange="updateItemValue(${item.id}, 'quantity', this.value)" min="1"></td>
                 <td>${item.isCombinable ? '<span style="color:#2563eb; font-weight:bold;">합산됨</span>' : '<span style="color:#94a3b8;">제외됨</span>'}</td>
-                <td style="color:#0284c7;">${unitPrice > 0 ? unitPrice.toLocaleString() : '0'}</td>
-                <td style="font-weight:bold; font-size:16px;">${finalPrice > 0 ? finalPrice.toLocaleString() : '0'}${errorMsg}</td>
-                <td><button class="btn-delete" onclick="deleteItem(${item.id})">✖</button></td>
+                <td style="color:#0284c7;">${unitPrice.toLocaleString()}</td>
+                <td style="font-weight:bold; font-size:16px;">${finalPrice.toLocaleString()} ${!row ? '<br><span style="color:#ef4444; font-size:11px;">단가표 없음</span>' : ''}</td>
+                <td class="out-of-table" data-html2canvas-ignore="true"><button class="btn-delete" onclick="deleteItem(${item.id})">X</button></td>
             `;
             tbody.appendChild(tr);
         });
-
         document.getElementById('grand-total').innerText = grandTotal.toLocaleString();
     }
 
+    // ==========================================
+    // 이미지 캡처 (버튼들은 자동 무시됨)
+    // ==========================================
     function downloadImage() {
-        if(itemList.length === 0) { alert("견적표가 비어있습니다!"); return; }
-        const captureArea = document.getElementById('capture-area');
-        html2canvas(captureArea, { scale: 1, backgroundColor: '#ffffff' }).then(canvas => {
+        if(itemList.length === 0) return alert("견적표가 비어있습니다!");
+        
+        html2canvas(document.getElementById('capture-area'), { scale: 1, backgroundColor: '#ffffff' }).then(canvas => {
             const link = document.createElement('a');
             link.download = '상세견적서.png';
             link.href = canvas.toDataURL('image/png');
