@@ -52585,7 +52585,7 @@ DTF 스티커 (부착),,,,,,600,,,,,,
                 <td><input type="number" value="${item.quantity}" onchange="updateItemValue(${item.id}, 'quantity', this.value)" min="1"></td>
                 <td>${item.isCombinable ? '<span style="color:#2563eb; font-weight:bold;">합산됨</span>' : '<span style="color:#94a3b8;">제외됨</span>'}</td>
                 <td style="color:#0284c7;">${unitPrice.toLocaleString()}</td>
-                <td style="font-weight:bold; font-size:16px;">${finalPrice.toLocaleString()} ${!row ? '<br><span style="color:#ef4444; font-size:11px;">제작불가 사이즈</span>' : ''}</td>
+                <td style="font-weight:bold; font-size:16px;">${finalPrice.toLocaleString()} ${!row ? '<br><span style="color:#ef4444; font-size:11px;">제작불가</span>' : ''}</td>
                 <td class="out-of-table" data-html2canvas-ignore="true"><button class="btn-delete" onclick="deleteItem(${item.id})">X</button></td>
             `;
             tbody.appendChild(tr);
