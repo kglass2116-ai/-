@@ -52366,6 +52366,7 @@ D고리,,,,,,300
 포토카드,,,,,,700
 머들러,,,,,,400
 슈즈참,,,,,,200
+펜꽂이/펜거치대,,,,,,300
 우산마커,,,,,,400
 미니 응원봉 키링,,,,,,3000
 체인,,,,,,300
@@ -52592,7 +52593,7 @@ DTF 스티커 (부착),,,,,,600
     function downloadImage() {
         if(itemList.length === 0) return alert("견적표가 비어있습니다!");
         
-        html2canvas(document.getElementById('capture-area'), { scale: 1, backgroundColor: '#ffffff' }).then(canvas => {
+        html2canvas(document.getElementById('capture-area'), { scale: 2, backgroundColor: '#ffffff' }).then(canvas => {
             const link = document.createElement('a');
             link.download = '상세견적서.png';
             link.href = canvas.toDataURL('image/png');
